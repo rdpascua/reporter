@@ -1,0 +1,36 @@
+{
+    "name": "laboratory/reporter",
+    "autoload": {
+        "psr-4": {
+            "Laboratory\\Reporter\\": "src"
+        }
+    },
+    "authors": [
+       {
+           "name": "Darick Pascua",
+           "email": "rdpascua@outlook.com"
+       }
+    ],
+    "require-dev": {
+       "phpunit/phpunit": "^6.5 || ^7.0"
+    },
+    "suggest": {
+        "rdpascua/jasperstarter": "Contains binary for jasperstarter"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "require": {
+        "symfony/http-foundation": "^3.0",
+        "symfony/process": "^3.0",
+        "rdpascua/jasperstarter": "3.1.0"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

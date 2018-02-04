@@ -1,0 +1,13 @@
+image: rdpascua/php-postgresql
+
+# Select what we should cache
+cache:
+  paths:
+  - vendor/
+
+before_script:
+- composer install
+
+test:
+  script:
+  - composer test
