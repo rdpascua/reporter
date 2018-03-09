@@ -5,7 +5,7 @@ namespace Laboratory\Reporter;
 use Exception;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
-class ReporterServiceProvier extends IlluminateServiceProvider
+class ReporterServiceProvider extends IlluminateServiceProvider
 {
 
     /**
