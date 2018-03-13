@@ -26,8 +26,8 @@
         "test": "vendor/bin/phpunit"
     },
     "require": {
-        "symfony/http-foundation": "^3.0",
-        "symfony/process": "^3.0",
+        "symfony/http-foundation": "^4.0",
+        "symfony/process": "^4.0",
         "rdpascua/jasperstarter": "3.1.0"
     },
     "config": {
