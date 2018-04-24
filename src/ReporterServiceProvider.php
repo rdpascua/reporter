@@ -37,17 +37,16 @@ class ReporterServiceProvider extends IlluminateServiceProvider
     {
         $this->app->bind('reporter', function($app) {
             $binaryPath = $app['config']->get('laboratory.reporter.binary_path');
-            $connection = $app['config']->get('laboratory.reporter.connection');
+            $connections = $app['config']->get('laboratory.reporter.connections');
+            $default = $app['config']->get('laboratory.reporter.default');
             $resourcePath = $app['config']->get('laboratory.reporter.reports_path');
 
-            $jasperStarter = new JasperStarter($binaryPath, $resourcePath, [
-                'driver' => $connection['driver'],
-                'host' => $connection['host'],
-                'port' => $connection['port'],
-                'database' => $connection['database'],
-                'username' => $connection['username'],
-                'password' => $connection['password'],
-            ]);
+            $jasperStarter = new JasperStarter(
+                $binaryPath,
+                $resourcePath,
+                $connections,
+                $default
+            );
 
             return new Reporter($jasperStarter);
         });

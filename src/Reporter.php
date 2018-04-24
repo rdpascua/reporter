@@ -18,6 +18,12 @@ class Reporter
     protected $report;
 
     /**
+     * [$connection description]
+     * @var [type]
+     */
+    protected $connection;
+
+    /**
      * Create an instance of Reporter
      *
      * @param JasperStarter $jasperStarter
@@ -42,7 +48,21 @@ class Reporter
             $filename .= ".jasper";
         }
 
-        $this->report = $this->jasperStarter->load($filename, $data);
+        $this->report = $this
+            ->jasperStarter
+            ->connection($this->connection)
+            ->load($filename, $data);
+
+        return $this;
+    }
+
+    /**
+     * [connection description]
+     * @return [type] [description]
+     */
+    public function connection($connection)
+    {
+        $this->connection = $connection;
 
         return $this;
     }

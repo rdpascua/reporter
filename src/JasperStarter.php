@@ -22,7 +22,13 @@ class JasperStarter
     /**
      * @var array
      */
-    protected $connection = [];
+    protected $connections = [];
+
+    /**
+     * [$connection description]
+     * @var [type]
+     */
+    protected $connection;
 
     /**
      * New instance of JasperStarter
@@ -30,7 +36,7 @@ class JasperStarter
      * @param string $binary
      * @param array  $connection
      */
-    public function __construct($binary, $resource, $connection = [])
+    public function __construct($binary, $resource, $connections = [], $connection = 'pgsql')
     {
         if (!file_exists($binary)) {
             throw new InvalidArgumentException('Binary path is invalid.');
@@ -39,8 +45,23 @@ class JasperStarter
         $this->binary = $binary;
         $this->resource = $resource;
         $this->connection = $connection;
-
+        $this->connections = $connections;
     }
+
+    /**
+     * [connection description]
+     * @param  [type] $connection [description]
+     * @return [type]             [description]
+     */
+    public function connection($connection = null)
+    {
+        if ($connection) {
+            $this->connection = $connection;
+        }
+
+        return $this;
+    }
+
 
     /**
      * Load the .jasper file
@@ -61,14 +82,16 @@ class JasperStarter
             $this->resource
         );
 
-        if (count($this->connection)) {
+        $connection = $this->connections[$this->connection];
+
+        if (count($connection)) {
             $command .= sprintf(' -t %s -u %s -p %s -H %s -n %s --db-port %s',
-                $this->connection['driver'],
-                $this->connection['username'],
-                $this->connection['password'],
-                $this->connection['host'],
-                $this->connection['database'],
-                $this->connection['port']
+                $connection['driver'],
+                $connection['username'],
+                $connection['password'],
+                $connection['host'],
+                $connection['database'],
+                $connection['port']
             );
         }
 
