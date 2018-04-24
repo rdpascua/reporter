@@ -84,7 +84,7 @@ class JasperStarter
 
         $connection = $this->connections[$this->connection];
 
-        if (count($connection)) {
+        if ($this->connection) {
             $command .= sprintf(' -t %s -u %s -p %s -H %s -n %s --db-port %s',
                 $connection['driver'],
                 $connection['username'],
