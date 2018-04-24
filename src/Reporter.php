@@ -101,8 +101,15 @@ class Reporter
      * @param  string $name
      * @return boolean
      */
-    public function save($destination)
+    public function save($destination, $filename = null)
     {
-        return rename($this->report . ".pdf", $destination);
+        $tmpFile = sprintf('%s.pdf', $this->report);
+        $savePath = $destination . $filename;
+
+        if (rename($tmpFile, $savePath)) {
+            return $savePath;
+        }
+
+        throw new Exception(sprintf('Unable to write %s on directory %s', $filename, $destination));
     }
 }
