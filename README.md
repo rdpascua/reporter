@@ -14,7 +14,7 @@ Add this to your `composer.json` as dependency
         "type": "git"
     }],
     "require": {
-        "laboratory/reporter": "~0.1",
+        "laboratory/reporter": "~0.3",
     }
 
 You can optionally use the facade

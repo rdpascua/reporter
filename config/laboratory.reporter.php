@@ -62,5 +62,5 @@ return [
     | Where is your *.jasper files storesd?
     |
     */
-    'reports_path' => env('REPORTS_PATH', resource_path('reports'))
+    'reports_path' => env('REPORTS_PATH', resource_path('storage'))
 ];

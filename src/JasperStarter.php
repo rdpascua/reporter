@@ -2,6 +2,7 @@
 
 namespace Laboratory\Reporter;
 
+use Exception;
 use InvalidArgumentException;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -75,44 +76,46 @@ class JasperStarter
         $tempFile = tempnam(sys_get_temp_dir(), 'REPORTER');
         $file = "{$this->resource}/{$file}";
 
-        $command = sprintf('%s process %s -f pdf -o %s -r',
+        $command = sprintf('%s process %s -f html -o %s -r',
             $this->binary,
             $file,
             $tempFile,
             $this->resource
         );
 
-        $connection = $this->connections[$this->connection];
-
-        if ($this->connection) {
-            $command .= sprintf(' -t %s -u %s -p %s -H %s -n %s --db-port %s',
-                $connection['driver'],
-                $connection['username'],
-                $connection['password'],
-                $connection['host'],
-                $connection['database'],
-                $connection['port']
-            );
-        }
-
-        if (count($data)) {
-            $command .= ' -P';
-
-            foreach($data as $key => $value) {
-                if (is_array($value))  {
-                    $value = implode(',', $value);
-                }
-
-                if (strpos($value, ' ') !== false) {
-                    $command .= " {$key}=\"{$value}\"";
-                    continue;
-                }
-
-                $command .= " {$key}={$value}";
-            }
-        }
-
         $this->exec($command);
+
+        // $connection = $this->connections[$this->connection];
+
+        // if ($this->connection) {
+        //     $command .= sprintf(' -t %s -u %s -p %s -H %s -n %s --db-port %s',
+        //         $connection['driver'],
+        //         $connection['username'],
+        //         $connection['password'],
+        //         $connection['host'],
+        //         $connection['database'],
+        //         $connection['port']
+        //     );
+        // }
+
+        // if (count($data)) {
+        //     $command .= ' -P';
+
+        //     foreach($data as $key => $value) {
+        //         if (is_array($value))  {
+        //             $value = implode(',', $value);
+        //         }
+
+        //         if (strpos($value, ' ') !== false) {
+        //             $command .= " {$key}=\"{$value}\"";
+        //             continue;
+        //         }
+
+        //         $command .= " {$key}={$value}";
+        //     }
+        // }
+
+        // $this->exec($command);
 
         return $tempFile;
     }
@@ -129,7 +132,7 @@ class JasperStarter
         $process->run();
 
         if (!$process->isSuccessful())  {
-            throw new ProcessFailedException($process);
+            throw new Exception($process->getErrorOutput());
         }
     }
 }

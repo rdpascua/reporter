@@ -89,8 +89,8 @@ class Reporter
      */
     public function inline($filename = null)
     {
-        return new Response(file_get_contents($this->report . '.pdf'), 200, [
-            'Content-Type' => 'application/pdf',
+        return new Response(file_get_contents($this->report . '.html'), 200, [
+            'Content-Type' => 'text/html',
             'Content-Disposition' => 'inline; filename="'.$filename.'"',
         ]);
     }
