@@ -56,6 +56,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | JasperStarter JDBC Path
+    |--------------------------------------------------------------------------
+    |
+    | You can override your own jdbc path, this is usefull if you're importing custom
+    | fonts and libraries that your reports need
+    |
+    */
+    'jdbc_path' => env('REPORTS_JDBC_DIR', base_path('vendor/rdpascua/jasperstarter/jdbc')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Reporting Path
     |--------------------------------------------------------------------------
     |

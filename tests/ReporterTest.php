@@ -16,6 +16,7 @@ class ReporterTest extends TestCase
 
         $this->jasperStarter = new JasperStarter(
             __DIR__ . '/../vendor/bin/jasperstarter',
+            __DIR__ . '/../vendor/rdpascua/jasperstarter/jdbc',
             __DIR__ . '/../stubs',
             []
         );
@@ -25,25 +26,29 @@ class ReporterTest extends TestCase
 
     public function testShouldGenerateTemporaryFile()
     {
-        $file = $this->jasperStarter->load('Basic');
+        $file = $this
+            ->jasperStarter
+            ->load('Basic', [], true)
+            ->exec('sample.pdf');
 
-        $this->assertTrue(file_exists($file));
+        $this->assertTrue(file_exists($file['tempFile']));
     }
 
     public function testShouldRespond()
     {
-        $reporter = $this->reporter->load('Basic');
+        $reporter = $this->reporter->load('Basic', [], true);
 
-        $this->assertInstanceOf(Response::class, $reporter->inline());
-        $this->assertInstanceOf(Response::class, $reporter->download());
+        $this->assertInstanceOf(Response::class, $reporter->inline('sample.pdf'));
+        $this->assertInstanceOf(Response::class, $reporter->download('sample.pdf'));
     }
 
     public function testShouldAcceptParameter()
     {
         $file = $this->jasperStarter->load('BasicWithParameter', [
             'Parameter1' => 'Somebody touch my spaget'
-        ]);
+        ], true)
+        ->exec('sample.pdf');
 
-        $this->assertTrue(file_exists($file));
+        $this->assertTrue(file_exists($file['tempFile']));
     }
 }

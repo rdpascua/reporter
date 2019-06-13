@@ -19,6 +19,12 @@ class JasperStarter
      * string
      * @var [type]
      */
+    protected $jdbcPath;
+
+    /**
+     * string
+     * @var [type]
+     */
     protected $tempFile;
 
     /**
@@ -81,13 +87,18 @@ class JasperStarter
      * @param string $binary
      * @param array  $connection
      */
-    public function __construct($binary, $resource, $connections = [], $connection = 'pgsql')
+    public function __construct($binary, $jdbcPath, $resource, $connections = [], $connection = 'pgsql')
     {
         if (!file_exists($binary)) {
             throw new InvalidArgumentException('Binary path is invalid.');
         }
 
+        if (!file_exists($jdbcPath)) {
+            throw new InvalidArgumentException('JDBC path is invalid.');
+        }
+
         $this->binary = $binary;
+        $this->jdbcPath = $jdbcPath;
         $this->resource = $resource;
         $this->connection = $connection;
         $this->connections = $connections;
@@ -132,12 +143,12 @@ class JasperStarter
      * @param  array  $data
      * @return string
      */
-    public function load($file, $data = [], $overrideConnection = false)
+    public function load($file, $data = [], $standalone = false)
     {
         $this->tempFile = tempnam(sys_get_temp_dir(), 'REPORTER');
         $this->reportFile = "{$this->resource}/{$file}";
         $this->data = $data;
-        $this->overrideConnection = $overrideConnection;
+        $this->standalone = $standalone;
 
         return $this;
     }
@@ -177,17 +188,19 @@ class JasperStarter
      */
     protected function getConnectionParameters()
     {
-        $connection = $this->connections[$this->connection];
+        if (!$this->standalone) {
+            $connection = $this->connections[$this->connection];
 
-        if ($this->connection && $this->overrideConnection) {
-            return sprintf(' -t %s -u %s -p %s -H %s -n %s --db-port %s',
-                $connection['driver'],
-                $connection['username'],
-                $connection['password'],
-                $connection['host'],
-                $connection['database'],
-                $connection['port']
-            );
+            if ($this->connection) {
+                return sprintf(' -t %s -u %s -p %s -H %s -n %s --db-port %s',
+                    $connection['driver'],
+                    $connection['username'],
+                    $connection['password'],
+                    $connection['host'],
+                    $connection['database'],
+                    $connection['port']
+                );
+            }
         }
 
         return false;
@@ -202,10 +215,11 @@ class JasperStarter
     {
         $fileinfo = $this->getFileInfo($filename);
 
-        $command = sprintf('%s process %s -f %s -o %s -r',
+        $command = sprintf('%s process %s -f %s --jdbc-dir=%s -o %s -r',
             $this->binary,
             $this->reportFile,
             $fileinfo['ext'],
+            $this->jdbcPath,
             $this->tempFile,
             $this->resource
         );

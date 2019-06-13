@@ -40,7 +40,7 @@ class Reporter
      * @param  array  $data
      * @return $this
      */
-    public function load($filename, $data = [])
+    public function load($filename, $data = [], $standalone = false)
     {
         $info = new SplFileInfo($filename);
 
@@ -51,7 +51,7 @@ class Reporter
         $this
             ->jasperStarter
             ->connection($this->connection)
-            ->load($filename, $data);
+            ->load($filename, $data, $standalone);
 
         return $this;
     }
@@ -73,10 +73,12 @@ class Reporter
      * @param  string $name
      * @return  \Illuminate\Http\Response
      */
-    public function download($filename = null)
+    public function download($filename)
     {
-        return new Response(file_get_contents($this->report . '.pdf'), 200, [
-            'Content-Type' => 'application/pdf',
+        $fileinfo = $this->jasperStarter->exec($filename);
+
+        return new Response(file_get_contents($fileinfo['tempFile']), 200, [
+            'Content-Type' => $fileinfo['mimeType'],
             'Content-Disposition' =>  'attachment; filename="'.$filename.'"'
         ]);
     }

@@ -45,9 +45,22 @@ You can optionally use the facade
     // Or save the pdf
     $reporter->save(storage_path() . '/app/files/sample-report.pdf');
 
+## Standalone Reports
+
+Just pass `true` as third parameter, this is useful for debugging reports that has no requirements for database connection.
+
+    $reporter = Reporter::load('Basic', [
+        'start_date' => '2017-01-01',
+        'end_date' => '2018-01-01'
+    ], true);
+
+## Font Customization
+
+There are instance that you need to configure additional fonts to your project, you can follow the instructions here
+https://community.jaspersoft.com/wiki/custom-font-font-extension
+
+and update your jdbc folder to your liking
+
 ## Testing
 
     $ composer test
-
-
-

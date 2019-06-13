@@ -36,12 +36,14 @@ class ReporterServiceProvider extends IlluminateServiceProvider
     {
         $this->app->bind('reporter', function($app) {
             $binaryPath = $app['config']->get('laboratory.reporter.binary_path');
+            $jdbcPath = $app['config']->get('laboratory.reporter.jdbc_path');
             $connections = $app['config']->get('laboratory.reporter.connections');
             $default = $app['config']->get('laboratory.reporter.default');
             $resourcePath = $app['config']->get('laboratory.reporter.reports_path');
 
             $jasperStarter = new JasperStarter(
                 $binaryPath,
+                $jdbcPath,
                 $resourcePath,
                 $connections,
                 $default

@@ -1,7 +1,10 @@
 # 0.3.0
 
 * Update `rdpascua/jasperstarter` to `3.5.0`
-* Allow generation for multiple formats
+* Allow generation for multiple formats (xls, xlsx, docx, odt, ods, html)
+* Change how `exec` command works
+* Fix issue with configuration
+* Allow configuration for the jdbc folder
 
 ## 0.2.0
 
