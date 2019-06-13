@@ -1,6 +1,7 @@
 # 0.3.0
 
 * Update `rdpascua/jasperstarter` to `3.5.0`
+* Allow generation for multiple formats
 
 ## 0.2.0
 

@@ -48,7 +48,7 @@ class Reporter
             $filename .= ".jasper";
         }
 
-        $this->report = $this
+        $this
             ->jasperStarter
             ->connection($this->connection)
             ->load($filename, $data);
@@ -87,10 +87,12 @@ class Reporter
      * @param  string $name
      * @return  \Illuminate\Http\Response
      */
-    public function inline($filename = null)
+    public function inline($filename)
     {
-        return new Response(file_get_contents($this->report . '.html'), 200, [
-            'Content-Type' => 'text/html',
+        $fileinfo = $this->jasperStarter->exec($filename);
+
+        return new Response(file_get_contents($fileinfo['tempFile']), 200, [
+            'Content-Type' => $fileinfo['mimeType'],
             'Content-Disposition' => 'inline; filename="'.$filename.'"',
         ]);
     }

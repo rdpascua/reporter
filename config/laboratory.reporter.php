@@ -34,9 +34,9 @@ return [
             'password' => env('REPORTER_PASSWORD', ''),
         ],
         'mysql' => [
-            'driver' => 'postgres',
+            'driver' => 'mysql',
             'host' => env('REPORTER_HOST', '127.0.0.1'),
-            'port' => env('REPORT_PORT', '5432'),
+            'port' => env('REPORT_PORT', '3306'),
             'database' => env('REPORTER_DATABASE', 'forge'),
             'username' => env('REPORTER_USERNAME', 'forge'),
             'password' => env('REPORTER_PASSWORD', ''),
@@ -62,5 +62,5 @@ return [
     | Where is your *.jasper files storesd?
     |
     */
-    'reports_path' => env('REPORTS_PATH', resource_path('storage'))
+    'reports_path' => env('REPORTS_PATH', storage_path('app/reports'))
 ];

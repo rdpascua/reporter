@@ -17,9 +17,13 @@ Add this to your `composer.json` as dependency
         "laboratory/reporter": "~0.3",
     }
 
+Add this to your service provider
+
+    Laboratory\Reporter\ReporterServiceProvider::class,
+
 You can optionally use the facade
 
-    'Reporter' => Laboratory\Reporter\Facade::class
+    'Reporter' => Laboratory\Reporter\Facades\Reporter::class,
 
 ## Configuration
 
@@ -27,7 +31,7 @@ You can optionally use the facade
 
 ## Usage
 
-    $reporter = Reporter::load('SampleReport', [
+    $reporter = Reporter::load('Basic', [
         'start_date' => '2017-01-01',
         'end_date' => '2018-01-01'
     ]);

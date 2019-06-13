@@ -7,7 +7,6 @@ use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
 class ReporterServiceProvider extends IlluminateServiceProvider
 {
-
     /**
      * Indicates if loading of the provider is deferred.
      *

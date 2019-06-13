@@ -16,6 +16,18 @@ class JasperStarter
     protected $binary;
 
     /**
+     * string
+     * @var [type]
+     */
+    protected $tempFile;
+
+    /**
+     * string
+     * @var [type]
+     */
+    protected $reportFile;
+
+    /**
      * @var string
      */
     protected $resource;
@@ -30,6 +42,38 @@ class JasperStarter
      * @var [type]
      */
     protected $connection;
+
+    /**
+     * [$overrideConnection description]
+     * @var boolean
+     */
+    protected $overrideConnection = false;
+
+    /**
+     * [$connection description]
+     * @var [type]
+     */
+    protected $data = [];
+
+    /**
+     * [$connection description]
+     * @var [type]
+     */
+    protected $dataParameters;
+
+    /**
+     * [$allowedMimes description]
+     * @var [type]
+     */
+    protected $allowedMimes = [
+        'xls' => 'application/vnd.ms-excel',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'odt' => 'application/vnd.oasis.opendocument.text',
+        'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+        'html' => 'text/html',
+        'pdf' => 'application/pdf'
+    ];
 
     /**
      * New instance of JasperStarter
@@ -63,6 +107,23 @@ class JasperStarter
         return $this;
     }
 
+    /**
+     * Returns the appropriate file extension and mime type
+     *
+     * @param  string $filename
+     * @return string
+     */
+    private function getFileInfo($filename)
+    {
+        [$basename, $extension] = explode('.', $filename);
+
+        return [
+            'ext' => $extension,
+            'filename' => $filename,
+            'tempFile' => implode('.', [$this->tempFile, $extension]),
+            'mimeType' => $this->allowedMimes[$extension]
+        ];
+    }
 
     /**
      * Load the .jasper file
@@ -71,53 +132,65 @@ class JasperStarter
      * @param  array  $data
      * @return string
      */
-    public function load($file, $data = [])
+    public function load($file, $data = [], $overrideConnection = false)
     {
-        $tempFile = tempnam(sys_get_temp_dir(), 'REPORTER');
-        $file = "{$this->resource}/{$file}";
+        $this->tempFile = tempnam(sys_get_temp_dir(), 'REPORTER');
+        $this->reportFile = "{$this->resource}/{$file}";
+        $this->data = $data;
+        $this->overrideConnection = $overrideConnection;
 
-        $command = sprintf('%s process %s -f html -o %s -r',
-            $this->binary,
-            $file,
-            $tempFile,
-            $this->resource
-        );
+        return $this;
+    }
 
-        $this->exec($command);
+    /**
+     * Returns the data parameters
+     *
+     * @return [type] [description]
+     */
+    protected function getDataParameters($command)
+    {
+        if (count($this->data)) {
+            $command = ' -P';
 
-        // $connection = $this->connections[$this->connection];
+            foreach($this->data as $key => $value) {
+                if (is_array($value))  {
+                    $value = implode(',', $value);
+                }
 
-        // if ($this->connection) {
-        //     $command .= sprintf(' -t %s -u %s -p %s -H %s -n %s --db-port %s',
-        //         $connection['driver'],
-        //         $connection['username'],
-        //         $connection['password'],
-        //         $connection['host'],
-        //         $connection['database'],
-        //         $connection['port']
-        //     );
-        // }
+                if (strpos($value, ' ') !== false) {
+                    $command .= " {$key}=\"{$value}\"";
+                    continue;
+                }
 
-        // if (count($data)) {
-        //     $command .= ' -P';
+                $command .= " {$key}={$value}";
+            }
 
-        //     foreach($data as $key => $value) {
-        //         if (is_array($value))  {
-        //             $value = implode(',', $value);
-        //         }
+            return $command;
+        }
 
-        //         if (strpos($value, ' ') !== false) {
-        //             $command .= " {$key}=\"{$value}\"";
-        //             continue;
-        //         }
+        return false;
+    }
 
-        //         $command .= " {$key}={$value}";
-        //     }
-        // }
+    /**
+     * Returns connection parameter to be executed
+     * @return [type] [description]
+     */
+    protected function getConnectionParameters()
+    {
+        $connection = $this->connections[$this->connection];
 
-        // $this->exec($command);
+        if ($this->connection && $this->overrideConnection) {
+            return sprintf(' -t %s -u %s -p %s -H %s -n %s --db-port %s',
+                $connection['driver'],
+                $connection['username'],
+                $connection['password'],
+                $connection['host'],
+                $connection['database'],
+                $connection['port']
+            );
+        }
 
-        return $tempFile;
+        return false;
     }
 
     /**
@@ -125,14 +198,28 @@ class JasperStarter
      *
      * @param  string $command
      */
-    protected function exec($command)
+    public function exec($filename)
     {
-        $process = new Process($command);
+        $fileinfo = $this->getFileInfo($filename);
 
+        $command = sprintf('%s process %s -f %s -o %s -r',
+            $this->binary,
+            $this->reportFile,
+            $fileinfo['ext'],
+            $this->tempFile,
+            $this->resource
+        );
+
+        $command .= $this->getConnectionParameters();
+        $command .= $this->getDataParameters($command);
+
+        $process = new Process($command);
         $process->run();
 
         if (!$process->isSuccessful())  {
             throw new Exception($process->getErrorOutput());
         }
+
+        return $fileinfo;
     }
 }
