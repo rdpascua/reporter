@@ -1,4 +1,8 @@
-# 0.3.0
+# 0.3.1
+
+* Fix issue when saving reports locally
+
+## 0.3.0
 
 * Update `rdpascua/jasperstarter` to `3.5.0`
 * Allow generation for multiple formats (xls, xlsx, docx, odt, ods, html)

@@ -105,15 +105,14 @@ class Reporter
      * @param  string $name
      * @return boolean
      */
-    public function save($destination, $filename = null)
+    public function save($filename)
     {
-        $tmpFile = sprintf('%s.pdf', $this->report);
-        $savePath = $destination . $filename;
+        $fileinfo = $this->jasperStarter->exec($filename);
 
-        if (rename($tmpFile, $savePath)) {
-            return $savePath;
+        if (rename($fileinfo['tempFile'], $fileinfo['filename'])) {
+            return $fileinfo['filename'];
         }
 
-        throw new Exception(sprintf('Unable to write %s on directory %s', $filename, $destination));
+        throw new Exception(sprintf('Unable to write on directory %s', $$fileinfo['filename']));
     }
 }
