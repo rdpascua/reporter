@@ -50,6 +50,12 @@ class JasperStarter
     protected $connection;
 
     /**
+     * [$command description]
+     * @var [type]
+     */
+    protected $command = [];
+
+    /**
      * [$overrideConnection description]
      * @var boolean
      */
@@ -154,32 +160,56 @@ class JasperStarter
     }
 
     /**
+     * Returns the temporary report file
+     *
+     * @return string
+     */
+    protected function getReportFile()
+    {
+        return $this->reportFile;
+    }
+
+    /**
+     * Returns the binary path
+     *
+     * @return [type] [description]
+     */
+    protected function getBinaryPath()
+    {
+        return $this->binary;
+    }
+
+    /**
+     * Returns the jdbc path
+     *
+     * @return [type] [description]
+     */
+    protected function getJdbcPath()
+    {
+        return $this->jdbcPath;
+    }
+
+    /**
      * Returns the data parameters
      *
      * @return [type] [description]
      */
-    protected function getDataParameters($command)
+    protected function getDataParameters()
     {
-        if (count($this->data)) {
-            $command = ' -P';
+        $this->command[] = '-P';
 
-            foreach($this->data as $key => $value) {
-                if (is_array($value))  {
-                    $value = implode(',', $value);
-                }
-
-                if (strpos($value, ' ') !== false) {
-                    $command .= " {$key}=\"{$value}\"";
-                    continue;
-                }
-
-                $command .= " {$key}={$value}";
+        foreach($this->data as $key => $value) {
+            if (is_array($value))  {
+                $value = implode(',', $value);
             }
 
-            return $command;
-        }
+            if (strpos($value, ' ') !== false) {
+                $this->command[] = "{$key}=\"{$value}\"";
+                continue;
+            }
 
-        return false;
+            $this->command[] = "{$key}={$value}";
+        }
     }
 
     /**
@@ -188,22 +218,24 @@ class JasperStarter
      */
     protected function getConnectionParameters()
     {
-        if (!$this->standalone) {
-            $connection = $this->connections[$this->connection];
+        $connection = $this->connections[$this->connection];
 
-            if ($this->connection) {
-                return sprintf(' -t %s -u %s -p %s -H %s -n %s --db-port %s',
-                    $connection['driver'],
-                    $connection['username'],
-                    $connection['password'],
-                    $connection['host'],
-                    $connection['database'],
-                    $connection['port']
-                );
-            }
+        if ($this->connection) {
+            $this->command = array_merge($this->command, [
+                '-t',
+                $connection['driver'],
+                '-u',
+                $connection['username'],
+                '-p',
+                $connection['password'],
+                '-H',
+                $connection['host'],
+                '-n',
+                $connection['database'],
+                '--db-port',
+                $connection['port']
+            ]);
         }
-
-        return false;
     }
 
     /**
@@ -215,19 +247,28 @@ class JasperStarter
     {
         $fileinfo = $this->getFileInfo($filename);
 
-        $command = sprintf('%s process %s -f %s --jdbc-dir=%s -o %s -r',
+        $this->command = [
             $this->binary,
+            'process',
             $this->reportFile,
+            '-f',
             $fileinfo['ext'],
+            '--jdbc-dir',
             $this->jdbcPath,
+            '-o',
             $this->tempFile,
-            $this->resource
-        );
+            '-r'
+        ];
 
-        $command .= $this->getConnectionParameters();
-        $command .= $this->getDataParameters($command);
+        if (!$this->standalone) {
+            $this->getConnectionParameters();
+        }
 
-        $process = new Process($command);
+        if (count($this->data)) {
+            $this->getDataParameters();
+        }
+
+        $process = new Process($this->command);
         $process->run();
 
         if (!$process->isSuccessful())  {
