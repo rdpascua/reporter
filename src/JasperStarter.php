@@ -227,14 +227,28 @@ class JasperStarter
                 '-u',
                 $connection['username'],
                 '-p',
-                $connection['password'],
-                '-H',
-                $connection['host'],
-                '-n',
-                $connection['database'],
-                '--db-port',
-                $connection['port']
+                $connection['password']
             ]);
+
+            // Required parameter for generic driver
+            if (isset($connection['options'])) {
+                $this->command[] = "--db-driver";
+                $this->command[] = $connection['options']['db-driver'];
+
+                $this->command[] = "--db-url";
+                $this->command[] = $connection['options']['db-url'];
+            }
+
+            if (!isset($connection['options'])) {
+                $this->command = array_merge($this->command, [
+                    '-H',
+                    $connection['host'],
+                    '-n',
+                    $connection['database'],
+                    '--db-port',
+                    $connection['port']
+                ]);
+            }
         }
     }
 

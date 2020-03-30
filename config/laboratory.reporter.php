@@ -40,6 +40,19 @@ return [
             'database' => env('REPORTER_DATABASE', 'forge'),
             'username' => env('REPORTER_USERNAME', 'forge'),
             'password' => env('REPORTER_PASSWORD', ''),
+        ],
+        'sqlsrv' => [
+            'driver' => 'generic',
+            'username' => env('REPORTER_USERNAME', 'forge'),
+            'password' => env('REPORTER_PASSWORD', ''),
+            'options' => [
+                'db-driver' => 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+                'db-url' => sprintf('jdbc:sqlserver://%s:%d;databaseName=%s',
+                    env('REPORTER_HOST', '127.0.0.1'),
+                    env('REPORT_PORT', '1433'),
+                    env('REPORTER_DATABASE', 'forge'),
+                )
+            ]
         ]
     ],
 
