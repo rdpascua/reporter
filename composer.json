@@ -28,7 +28,7 @@
     "require": {
         "symfony/http-foundation": "^5.0",
         "symfony/process": "^5.0",
-        "rdpascua/jasperstarter": "3.5.0"
+        "rdpascua/jasperstarter": "dev-master"
     },
     "config": {
         "sort-packages": true
