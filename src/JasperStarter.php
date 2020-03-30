@@ -203,11 +203,6 @@ class JasperStarter
                 $value = implode(',', $value);
             }
 
-            if (strpos($value, ' ') !== false) {
-                $this->command[] = "{$key}=\"{$value}\"";
-                continue;
-            }
-
             $this->command[] = "{$key}={$value}";
         }
     }
