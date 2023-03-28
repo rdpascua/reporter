@@ -1,13 +1,14 @@
 <?php
 
+use Reporter\JasperStarter;
+use Reporter\Reporter;
 use PHPUnit\Framework\TestCase;
-use Laboratory\Reporter\Reporter;
-use Laboratory\Reporter\JasperStarter;
 use Symfony\Component\HttpFoundation\Response;
 
 class ReporterTest extends TestCase
 {
     protected $jasperStarter;
+
     protected $reporter;
 
     public function setUp()
@@ -15,9 +16,9 @@ class ReporterTest extends TestCase
         parent::setUp();
 
         $this->jasperStarter = new JasperStarter(
-            __DIR__ . '/../vendor/bin/jasperstarter',
-            __DIR__ . '/../vendor/rdpascua/jasperstarter/jdbc',
-            __DIR__ . '/../stubs',
+            __DIR__.'/../vendor/bin/jasperstarter',
+            __DIR__.'/../vendor/rdpascua/jasperstarter/jdbc',
+            __DIR__.'/../stubs',
             []
         );
 
@@ -45,7 +46,7 @@ class ReporterTest extends TestCase
     public function testShouldAcceptParameter()
     {
         $file = $this->jasperStarter->load('BasicWithParameter', [
-            'Parameter1' => 'Somebody touch my spaget'
+            'Parameter1' => 'Somebody touch my spaget',
         ], true)
         ->exec('sample.pdf');
 

@@ -1,34 +1,37 @@
 <?php
 
-namespace Laboratory\Reporter;
+namespace Reporter;
 
 use Exception;
 use InvalidArgumentException;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class JasperStarter
 {
     /**
      * string
+     *
      * @var [type]
      */
     protected $binary;
 
     /**
      * string
+     *
      * @var [type]
      */
     protected $jdbcPath;
 
     /**
      * string
+     *
      * @var [type]
      */
     protected $tempFile;
 
     /**
      * string
+     *
      * @var [type]
      */
     protected $reportFile;
@@ -45,36 +48,42 @@ class JasperStarter
 
     /**
      * [$connection description]
+     *
      * @var [type]
      */
     protected $connection;
 
     /**
      * [$command description]
+     *
      * @var [type]
      */
     protected $command = [];
 
     /**
      * [$overrideConnection description]
-     * @var boolean
+     *
+     * @var bool
      */
     protected $overrideConnection = false;
 
     /**
      * [$connection description]
+     *
      * @var [type]
      */
     protected $data = [];
 
     /**
      * [$connection description]
+     *
      * @var [type]
      */
     protected $dataParameters;
 
     /**
      * [$allowedMimes description]
+     *
      * @var [type]
      */
     protected $allowedMimes = [
@@ -84,22 +93,23 @@ class JasperStarter
         'odt' => 'application/vnd.oasis.opendocument.text',
         'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
         'html' => 'text/html',
-        'pdf' => 'application/pdf'
+        'pdf' => 'application/pdf',
     ];
 
     /**
      * New instance of JasperStarter
 
-     * @param string $binary
-     * @param array  $connection
+     *
+     * @param  string  $binary
+     * @param  array  $connection
      */
     public function __construct($binary, $jdbcPath, $resource, $connections = [], $connection = 'pgsql')
     {
-        if (!file_exists($binary)) {
+        if (! file_exists($binary)) {
             throw new InvalidArgumentException('Binary path is invalid.');
         }
 
-        if (!file_exists($jdbcPath)) {
+        if (! file_exists($jdbcPath)) {
             throw new InvalidArgumentException('JDBC path is invalid.');
         }
 
@@ -112,6 +122,7 @@ class JasperStarter
 
     /**
      * [connection description]
+     *
      * @param  [type] $connection [description]
      * @return [type]             [description]
      */
@@ -127,7 +138,7 @@ class JasperStarter
     /**
      * Returns the appropriate file extension and mime type
      *
-     * @param  string $filename
+     * @param  string  $filename
      * @return string
      */
     private function getFileInfo($filename)
@@ -138,14 +149,15 @@ class JasperStarter
             'ext' => $extension,
             'filename' => $filename,
             'tempFile' => implode('.', [$this->tempFile, $extension]),
-            'mimeType' => $this->allowedMimes[$extension]
+            'mimeType' => $this->allowedMimes[$extension],
         ];
     }
 
     /**
      * Load the .jasper file
 
-     * @param  string $file
+     *
+     * @param  string  $file
      * @param  array  $data
      * @return string
      */
@@ -198,8 +210,8 @@ class JasperStarter
     {
         $this->command[] = '-P';
 
-        foreach($this->data as $key => $value) {
-            if (is_array($value))  {
+        foreach ($this->data as $key => $value) {
+            if (is_array($value)) {
                 $value = implode(',', $value);
             }
 
@@ -209,6 +221,7 @@ class JasperStarter
 
     /**
      * Returns connection parameter to be executed
+     *
      * @return [type] [description]
      */
     protected function getConnectionParameters()
@@ -222,26 +235,26 @@ class JasperStarter
                 '-u',
                 $connection['username'],
                 '-p',
-                $connection['password']
+                $connection['password'],
             ]);
 
             // Required parameter for generic driver
             if (isset($connection['options'])) {
-                $this->command[] = "--db-driver";
+                $this->command[] = '--db-driver';
                 $this->command[] = $connection['options']['db-driver'];
 
-                $this->command[] = "--db-url";
+                $this->command[] = '--db-url';
                 $this->command[] = $connection['options']['db-url'];
             }
 
-            if (!isset($connection['options'])) {
+            if (! isset($connection['options'])) {
                 $this->command = array_merge($this->command, [
                     '-H',
                     $connection['host'],
                     '-n',
                     $connection['database'],
                     '--db-port',
-                    $connection['port']
+                    $connection['port'],
                 ]);
             }
         }
@@ -250,7 +263,7 @@ class JasperStarter
     /**
      * Execute the jasperstarter command
      *
-     * @param  string $command
+     * @param  string  $command
      */
     public function exec($filename)
     {
@@ -266,10 +279,10 @@ class JasperStarter
             $this->jdbcPath,
             '-o',
             $this->tempFile,
-            '-r'
+            '-r',
         ];
 
-        if (!$this->standalone) {
+        if (! $this->standalone) {
             $this->getConnectionParameters();
         }
 
@@ -280,7 +293,7 @@ class JasperStarter
         $process = new Process($this->command);
         $process->run();
 
-        if (!$process->isSuccessful())  {
+        if (! $process->isSuccessful()) {
             throw new Exception($process->getErrorOutput());
         }
 

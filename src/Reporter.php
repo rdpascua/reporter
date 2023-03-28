@@ -1,6 +1,6 @@
 <?php
 
-namespace Laboratory\Reporter;
+namespace Reporter;
 
 use SplFileInfo;
 use Symfony\Component\HttpFoundation\Response;
@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 class Reporter
 {
     /**
-     * @var Laboratory\Reporter\JasperStarter
+     * @var Reporter\JasperStarter
      */
     protected $jasperStarter;
 
@@ -19,14 +19,13 @@ class Reporter
 
     /**
      * [$connection description]
+     *
      * @var [type]
      */
     protected $connection;
 
     /**
      * Create an instance of Reporter
-     *
-     * @param JasperStarter $jasperStarter
      */
     public function __construct(JasperStarter $jasperStarter)
     {
@@ -36,7 +35,7 @@ class Reporter
     /**
      * Load the file to jasperstarter
      *
-     * @param string $file
+     * @param  string  $file
      * @param  array  $data
      * @return $this
      */
@@ -45,7 +44,7 @@ class Reporter
         $info = new SplFileInfo($filename);
 
         if ($info->getExtension() !== 'jasper') {
-            $filename .= ".jasper";
+            $filename .= '.jasper';
         }
 
         $this
@@ -58,6 +57,7 @@ class Reporter
 
     /**
      * [connection description]
+     *
      * @return [type] [description]
      */
     public function connection($connection)
@@ -70,7 +70,7 @@ class Reporter
     /**
      * Download the generated file
      *
-     * @param  string $name
+     * @param  string  $name
      * @return  \Illuminate\Http\Response
      */
     public function download($filename)
@@ -79,14 +79,14 @@ class Reporter
 
         return new Response(file_get_contents($fileinfo['tempFile']), 200, [
             'Content-Type' => $fileinfo['mimeType'],
-            'Content-Disposition' =>  'attachment; filename="'.$filename.'"'
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 
     /**
      * Stream the generated file in the browser
      *
-     * @param  string $name
+     * @param  string  $name
      * @return  \Illuminate\Http\Response
      */
     public function inline($filename)
@@ -102,8 +102,8 @@ class Reporter
     /**
      * Save the generated file to disk
      *
-     * @param  string $name
-     * @return boolean
+     * @param  string  $name
+     * @return bool
      */
     public function save($filename)
     {

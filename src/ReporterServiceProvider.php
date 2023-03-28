@@ -1,8 +1,7 @@
 <?php
 
-namespace Laboratory\Reporter;
+namespace Reporter;
 
-use Exception;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
 class ReporterServiceProvider extends IlluminateServiceProvider
@@ -22,19 +21,20 @@ class ReporterServiceProvider extends IlluminateServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/../config/laboratory.reporter.php' => config_path('laboratory.reporter.php'),
+            __DIR__ . '/../config/reporter.php' => config_path('laboratory.reporter.php'),
         ], 'laboratory-reporter');
     }
 
     /**
      * Register the service provider.
      *
-     * @throws \Exception
      * @return void
+     *
+     * @throws \Exception
      */
     public function register()
     {
-        $this->app->bind('reporter', function($app) {
+        $this->app->bind('reporter', function ($app) {
             $binaryPath = $app['config']->get('laboratory.reporter.binary_path');
             $jdbcPath = $app['config']->get('laboratory.reporter.jdbc_path');
             $connections = $app['config']->get('laboratory.reporter.connections');
@@ -61,8 +61,7 @@ class ReporterServiceProvider extends IlluminateServiceProvider
     public function provides()
     {
         return [
-            'reporter'
+            'reporter',
         ];
     }
-
 }
