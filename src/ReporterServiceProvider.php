@@ -1,67 +1,41 @@
 <?php
 
-namespace Reporter;
+namespace Rdpascua\Reporter;
 
-use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class ReporterServiceProvider extends IlluminateServiceProvider
+class ReporterServiceProvider extends PackageServiceProvider
 {
-    /**
-     * Indicates if loading of the provider is deferred.
-     *
-     * @var bool
-     */
-    protected $defer = false;
-
-    /**
-     * Perform post-registration booting of services.
-     *
-     * @return void
-     */
-    public function boot()
+    public function configurePackage(Package $package): void
     {
-        $this->publishes([
-            __DIR__ . '/../config/reporter.php' => config_path('laboratory.reporter.php'),
-        ], 'laboratory-reporter');
+        $package
+            ->name('reporter')
+            ->hasConfigFile();
     }
 
-    /**
-     * Register the service provider.
-     *
-     * @return void
-     *
-     * @throws \Exception
-     */
-    public function register()
+    public function packageRegistered(): void
     {
-        $this->app->bind('reporter', function ($app) {
-            $binaryPath = $app['config']->get('laboratory.reporter.binary_path');
-            $jdbcPath = $app['config']->get('laboratory.reporter.jdbc_path');
-            $connections = $app['config']->get('laboratory.reporter.connections');
-            $default = $app['config']->get('laboratory.reporter.default');
-            $resourcePath = $app['config']->get('laboratory.reporter.reports_path');
+        $this->app->singleton(Reporter::class);
+        $this->app->alias(Reporter::class, 'reporter');
+    }
 
-            $jasperStarter = new JasperStarter(
-                $binaryPath,
-                $jdbcPath,
-                $resourcePath,
-                $connections,
-                $default
-            );
+    public function bootingPackage()
+    {
+        $this->app->bind(Reporter::class, function () {
+            $binaryPath = config('reporter.binary_path');
+            $jdbcPath = config('reporter.jdbc_path');
+            $connection = config('reporter.connection') ?? config('database.default');
+
+            dd($connection);
+
+//            $jasperStarter = new JasperStarter(
+//                $binaryPath,
+//                $jdbcPath,
+//                $connection
+//            );
 
             return new Reporter($jasperStarter);
         });
-    }
-
-    /**
-     * Get the services provided by the provider.
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return [
-            'reporter',
-        ];
     }
 }

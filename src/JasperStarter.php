@@ -1,302 +1,135 @@
 <?php
 
-namespace Reporter;
+namespace Rdpascua\Reporter;
 
 use Exception;
 use InvalidArgumentException;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
 class JasperStarter
 {
     /**
-     * string
+     * The attributes that are mass assignable.
      *
-     * @var [type]
+     * @var array<string, string>
      */
-    protected $binary;
-
-    /**
-     * string
-     *
-     * @var [type]
-     */
-    protected $jdbcPath;
-
-    /**
-     * string
-     *
-     * @var [type]
-     */
-    protected $tempFile;
-
-    /**
-     * string
-     *
-     * @var [type]
-     */
-    protected $reportFile;
-
-    /**
-     * @var string
-     */
-    protected $resource;
-
-    /**
-     * @var array
-     */
-    protected $connections = [];
-
-    /**
-     * [$connection description]
-     *
-     * @var [type]
-     */
-    protected $connection;
-
-    /**
-     * [$command description]
-     *
-     * @var [type]
-     */
-    protected $command = [];
-
-    /**
-     * [$overrideConnection description]
-     *
-     * @var bool
-     */
-    protected $overrideConnection = false;
-
-    /**
-     * [$connection description]
-     *
-     * @var [type]
-     */
-    protected $data = [];
-
-    /**
-     * [$connection description]
-     *
-     * @var [type]
-     */
-    protected $dataParameters;
-
-    /**
-     * [$allowedMimes description]
-     *
-     * @var [type]
-     */
-    protected $allowedMimes = [
+    protected $mimes = [
         'xls' => 'application/vnd.ms-excel',
         'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'odt' => 'application/vnd.oasis.opendocument.text',
         'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
         'html' => 'text/html',
+        'xhtml' => 'application/xhtml+xml',
+        'csv' => 'text/csv',
         'pdf' => 'application/pdf',
+        'xml' => 'application/xml',
     ];
 
-    /**
-     * New instance of JasperStarter
+    protected array $data = [];
 
-     *
-     * @param  string  $binary
-     * @param  array  $connection
-     */
-    public function __construct($binary, $jdbcPath, $resource, $connections = [], $connection = 'pgsql')
+    public function __construct(protected string $binary, protected string $jdbcPath, protected array $connection = [])
     {
         if (! file_exists($binary)) {
-            throw new InvalidArgumentException('Binary path is invalid.');
+            $this->binary = __DIR__.'/../bin/jasperstarter/bin/jasperstarter';
         }
 
         if (! file_exists($jdbcPath)) {
-            throw new InvalidArgumentException('JDBC path is invalid.');
+            $this->jdbcPath = __DIR__.'/../bin/jasperstarter/jdbc';
         }
-
-        $this->binary = $binary;
-        $this->jdbcPath = $jdbcPath;
-        $this->resource = $resource;
-        $this->connection = $connection;
-        $this->connections = $connections;
     }
 
-    /**
-     * [connection description]
-     *
-     * @param  [type] $connection [description]
-     * @return [type]             [description]
-     */
-    public function connection($connection = null)
+    public function load(string $filePath, array $data = []): self
     {
-        if ($connection) {
-            $this->connection = $connection;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Returns the appropriate file extension and mime type
-     *
-     * @param  string  $filename
-     * @return string
-     */
-    private function getFileInfo($filename)
-    {
-        [$basename, $extension] = explode('.', $filename);
-
-        return [
-            'ext' => $extension,
-            'filename' => $filename,
-            'tempFile' => implode('.', [$this->tempFile, $extension]),
-            'mimeType' => $this->allowedMimes[$extension],
-        ];
-    }
-
-    /**
-     * Load the .jasper file
-
-     *
-     * @param  string  $file
-     * @param  array  $data
-     * @return string
-     */
-    public function load($file, $data = [], $standalone = false)
-    {
-        $this->tempFile = tempnam(sys_get_temp_dir(), 'REPORTER');
-        $this->reportFile = "{$this->resource}/{$file}";
+        $this->file = $filePath;
         $this->data = $data;
-        $this->standalone = $standalone;
 
         return $this;
     }
 
-    /**
-     * Returns the temporary report file
-     *
-     * @return string
-     */
-    protected function getReportFile()
-    {
-        return $this->reportFile;
-    }
+   public function compile(string $output = null): self
+   {
+       $command = $this->createCommand('compile', [
+           'input' => $this->file,
+           'output' => $output,
+       ]);
 
-    /**
-     * Returns the binary path
-     *
-     * @return [type] [description]
-     */
-    protected function getBinaryPath()
-    {
-        return $this->binary;
-    }
+       $this->runCommand($command);
 
-    /**
-     * Returns the jdbc path
-     *
-     * @return [type] [description]
-     */
-    protected function getJdbcPath()
-    {
-        return $this->jdbcPath;
-    }
+       return $this;
+   }
 
-    /**
-     * Returns the data parameters
-     *
-     * @return [type] [description]
-     */
-    protected function getDataParameters()
-    {
-        $this->command[] = '-P';
+   public function getMime(string $fileExtension): string
+   {
+       return $this->mimes[$fileExtension];
+   }
 
-        foreach ($this->data as $key => $value) {
-            if (is_array($value)) {
-                $value = implode(',', $value);
-            }
+   public function process(string $output, array $options = []): string
+   {
+       $fileExtension = pathinfo($output, PATHINFO_EXTENSION);
 
-            $this->command[] = "{$key}={$value}";
-        }
-    }
+       if (! array_key_exists($fileExtension, $this->mimes)) {
+           throw new InvalidArgumentException("Invalid format: {$fileExtension}. Please provide a valid format.");
+       }
 
-    /**
-     * Returns connection parameter to be executed
-     *
-     * @return [type] [description]
-     */
-    protected function getConnectionParameters()
-    {
-        $connection = $this->connections[$this->connection];
+       $options = array_merge($options, [
+           'output' => str_replace(".{$fileExtension}", '', $output),
+           'format' => $fileExtension,
+       ]);
 
-        if ($this->connection) {
-            $this->command = array_merge($this->command, [
-                '-t',
-                $connection['driver'],
-                '-u',
-                $connection['username'],
-                '-p',
-                $connection['password'],
-            ]);
+       $command = $this->createCommand('process', $options);
+       $this->runCommand($command);
 
-            // Required parameter for generic driver
-            if (isset($connection['options'])) {
-                $this->command[] = '--db-driver';
-                $this->command[] = $connection['options']['db-driver'];
+       return $output;
+   }
 
-                $this->command[] = '--db-url';
-                $this->command[] = $connection['options']['db-url'];
-            }
+   private function createCommand(string $action, array $options): array
+   {
+       $command = [$this->binary, $action];
 
-            if (! isset($connection['options'])) {
-                $this->command = array_merge($this->command, [
-                    '-H',
-                    $connection['host'],
-                    '-n',
-                    $connection['database'],
-                    '--db-port',
-                    $connection['port'],
-                ]);
-            }
-        }
-    }
+       switch ($action) {
+           case 'compile':
+               $command[] = $options['input'];
 
-    /**
-     * Execute the jasperstarter command
-     *
-     * @param  string  $command
-     */
-    public function exec($filename)
-    {
-        $fileinfo = $this->getFileInfo($filename);
+               if ($options['output']) {
+                   $output = str_replace('.jasper', '', $options['output']);
+                   $command = array_merge($command, ['-o', $output]);
+               }
+               break;
+           case 'process':
+               $command = array_merge($command, [
+                   $this->file,
+                   '-f',
+                   $options['format'],
+                   '-o',
+                   $options['output'],
+                   '--jdbc-dir',
+                   $this->jdbcPath,
+               ]);
 
-        $this->command = [
-            $this->binary,
-            'process',
-            $this->reportFile,
-            '-f',
-            $fileinfo['ext'],
-            '--jdbc-dir',
-            $this->jdbcPath,
-            '-o',
-            $this->tempFile,
-            '-r',
-        ];
+               if (count($this->data)) {
+                   $command[] = '-P';
 
-        if (! $this->standalone) {
-            $this->getConnectionParameters();
-        }
+                   foreach ($this->data as $key => $value) {
+                       $command[] = "$key=$value";
+                   }
+               }
 
-        if (count($this->data)) {
-            $this->getDataParameters();
-        }
+               break;
+       }
 
-        $process = new Process($this->command);
-        $process->run();
+       return $command;
+   }
 
-        if (! $process->isSuccessful()) {
-            throw new Exception($process->getErrorOutput());
-        }
+   private function runCommand(array $command): void
+   {
+       $process = new Process($command);
 
-        return $fileinfo;
-    }
+       try {
+           $process->mustRun();
+       } catch (ProcessFailedException $exception) {
+           throw new Exception($exception->getMessage());
+       }
+   }
 }

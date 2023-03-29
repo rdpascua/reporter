@@ -1,10 +1,10 @@
 <?php
 
-namespace Laboratory\Reporter\Facades;
+namespace Rdpascua\Reporter\Facades;
 
-use Illuminate\Support\Facades\Facade as BaseFacade;
+use Illuminate\Support\Facades\Facade;
 
-class Reporter extends BaseFacade
+class Reporter extends Facade
 {
     /**
      * Get the registered name of the component.

@@ -11,7 +11,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Reporter\\": "src"
+            "Rdpascua\\Reporter\\": "src"
         }
     },
     "authors": [
@@ -22,7 +22,7 @@
     ],
     "require-dev": {
         "laravel/pint": "^1.7",
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^9.5"
     },
     "autoload-dev": {
         "psr-4": {
@@ -35,15 +35,16 @@
     },
     "require": {
         "php": "^8.0",
+        "spatie/laravel-package-tools": "^1.14",
         "symfony/process": "^6.0"
     },
      "extra": {
         "laravel": {
             "providers": [
-                "Reporter\\ReporterServiceProvider"
+                "Rdpascua\\Reporter\\ReporterServiceProvider"
             ],
             "aliases": {
-                "Health": "Reporter\\Facades\\Reporter"
+                "Reporter": "Rdpascua\\Reporter\\Facades\\Reporter"
             }
         }
     },

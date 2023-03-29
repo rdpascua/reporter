@@ -1,118 +1,60 @@
 <?php
 
-namespace Reporter;
+namespace Rdpascua\Reporter;
 
-use SplFileInfo;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Reporter
 {
-    /**
-     * @var Reporter\JasperStarter
-     */
-    protected $jasperStarter;
-
-    /**
-     * @var string
-     */
-    protected $report;
-
-    /**
-     * [$connection description]
-     *
-     * @var [type]
-     */
-    protected $connection;
-
-    /**
-     * Create an instance of Reporter
-     */
-    public function __construct(JasperStarter $jasperStarter)
+    public function __construct(protected JasperStarter $jasperStarter)
     {
-        $this->jasperStarter = $jasperStarter;
     }
 
-    /**
-     * Load the file to jasperstarter
-     *
-     * @param  string  $file
-     * @param  array  $data
-     * @return $this
-     */
-    public function load($filename, $data = [], $standalone = false)
+    public function load(string $filePath, array $data = []): self
     {
-        $info = new SplFileInfo($filename);
-
-        if ($info->getExtension() !== 'jasper') {
-            $filename .= '.jasper';
-        }
-
-        $this
-            ->jasperStarter
-            ->connection($this->connection)
-            ->load($filename, $data, $standalone);
+        $this->jasperStarter->load($filePath, $data);
 
         return $this;
     }
 
-    /**
-     * [connection description]
-     *
-     * @return [type] [description]
-     */
-    public function connection($connection)
+    public function compile(): self
     {
-        $this->connection = $connection;
+        $this->jasperStarter->compile();
 
         return $this;
     }
 
-    /**
-     * Download the generated file
-     *
-     * @param  string  $name
-     * @return  \Illuminate\Http\Response
-     */
-    public function download($filename)
+    public function stream(string $filename = 'document.pdf'): StreamedResponse
     {
-        $fileinfo = $this->jasperStarter->exec($filename);
+        $tempFile = tempnam(sys_get_temp_dir(), 'reporter');
 
-        return new Response(file_get_contents($fileinfo['tempFile']), 200, [
-            'Content-Type' => $fileinfo['mimeType'],
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        $fileExtension = pathinfo($filename, PATHINFO_EXTENSION);
+
+        $output = $this->jasperStarter->process("$tempFile.$fileExtension");
+
+        $stream = function () use ($output) {
+            $handle = fopen($output, 'rb');
+            while (! feof($handle)) {
+                echo fread($handle, 8192);
+                ob_flush();
+                flush();
+            }
+            fclose($handle);
+        };
+
+        // Return the streamed response
+        return new StreamedResponse($stream, 200, [
+            'Content-Type' => $this->jasperStarter->getMime($fileExtension),
+            'Content-Disposition' => "inline; filename=$filename",
         ]);
     }
 
-    /**
-     * Stream the generated file in the browser
-     *
-     * @param  string  $name
-     * @return  \Illuminate\Http\Response
-     */
-    public function inline($filename)
+    public function save(string $filename): self
     {
-        $fileinfo = $this->jasperStarter->exec($filename);
+        $fileExtension = pathinfo($filename, PATHINFO_EXTENSION);
 
-        return new Response(file_get_contents($fileinfo['tempFile']), 200, [
-            'Content-Type' => $fileinfo['mimeType'],
-            'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        ]);
-    }
+        $this->jasperStarter->process("$filename.$fileExtension");
 
-    /**
-     * Save the generated file to disk
-     *
-     * @param  string  $name
-     * @return bool
-     */
-    public function save($filename)
-    {
-        $fileinfo = $this->jasperStarter->exec($filename);
-
-        if (rename($fileinfo['tempFile'], $fileinfo['filename'])) {
-            return $fileinfo['filename'];
-        }
-
-        throw new Exception(sprintf('Unable to write on directory %s', $$fileinfo['filename']));
+        return $this;
     }
 }

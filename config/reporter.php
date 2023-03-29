@@ -3,58 +3,15 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Default Reporter Connection Name
+    | Default Reporter Connection
     |--------------------------------------------------------------------------
     |
-    | Here you may specify which of the database connections below you wish
-    | to use as your default connection for all database work. Of course
-    | you may use many connections at once using the Database library.
+    | This is the database connection that will be used when generating reports
+    | from the database. You may use any of the connections defined in the
+    | database configuration file.
     |
     */
-    'default' => env('REPORTER_CONNECTION', 'pgsql'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Database Connection
-    |--------------------------------------------------------------------------
-    |
-    | Here are each of the database connections setup for your reporter. It's advisable
-    | to use a readonly user for the reporter
-    |
-    | Supported: "postgres", "mysql"
-    |
-    */
-    'connections' => [
-        'pgsql' => [
-            'driver' => 'postgres',
-            'host' => env('REPORTER_HOST', '127.0.0.1'),
-            'port' => env('REPORT_PORT', '5432'),
-            'database' => env('REPORTER_DATABASE', 'forge'),
-            'username' => env('REPORTER_USERNAME', 'forge'),
-            'password' => env('REPORTER_PASSWORD', ''),
-        ],
-        'mysql' => [
-            'driver' => 'mysql',
-            'host' => env('REPORTER_HOST', '127.0.0.1'),
-            'port' => env('REPORT_PORT', '3306'),
-            'database' => env('REPORTER_DATABASE', 'forge'),
-            'username' => env('REPORTER_USERNAME', 'forge'),
-            'password' => env('REPORTER_PASSWORD', ''),
-        ],
-        'sqlsrv' => [
-            'driver' => 'generic',
-            'username' => env('REPORTER_USERNAME', 'forge'),
-            'password' => env('REPORTER_PASSWORD', ''),
-            'options' => [
-                'db-driver' => 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
-                'db-url' => sprintf('jdbc:sqlserver://%s:%d;databaseName=%s',
-                    env('REPORTER_HOST', '127.0.0.1'),
-                    env('REPORT_PORT', '1433'),
-                    env('REPORTER_DATABASE', 'forge'),
-                ),
-            ],
-        ],
-    ],
+    'connection' => env('REPORTER_CONNECTION'),
 
     /*
     |--------------------------------------------------------------------------
@@ -65,26 +22,16 @@ return [
     | http://jasperstarter.cenote.de/
     |
     */
-    'binary_path' => env('REPORTS_BINARY', base_path('vendor/bin/jasperstarter')),
+    'binary_path' => env('REPORTER_BINARY'),
 
     /*
     |--------------------------------------------------------------------------
     | JasperStarter JDBC Path
     |--------------------------------------------------------------------------
     |
-    | You can override your own jdbc path, this is usefull if you're importing custom
+    | You can override your own jdbc path, this is useful if you're importing custom
     | fonts and libraries that your reports need
     |
     */
-    'jdbc_path' => env('REPORTS_JDBC_DIR', base_path('vendor/rdpascua/jasperstarter/jdbc')),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Reporting Path
-    |--------------------------------------------------------------------------
-    |
-    | Where is your *.jasper files storesd?
-    |
-    */
-    'reports_path' => env('REPORTS_PATH', storage_path('app/reports')),
+    'jdbc_path' => env('REPORTER_JDBC_PATH'),
 ];
