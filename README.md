@@ -14,22 +14,24 @@ composer require rdpascua/reporter
 use Rdpascua\Reporter\Facades\Reporter;
 
 // Stream the report to the browser
-Reporter::load('path/to/jasper/file.jrxml')->stream('document.pdf');
+Reporter::load('path/to/jasper/file.jasper')->stream('document.pdf');
 
 // Pass parameters to the report and download it
-Reporter::load('path/to/jasper/file.jrxml', [
+Reporter::load('path/to/jasper/file.jasper', [
     'param1' => 'value1',
     'param2' => 'value2',
 ])
-->setConnection('pgsql')
 ->download('document.pdf');
 
 // Pass parameters to the report and save it to a file
-Reporter::load('path/to/jasper/file.jrxml', [
+Reporter::load('path/to/jasper/file.jasper', [
     'param1' => 'value1',
     'param2' => 'value2',
-], 'mysql')
+])
 ->save('document.pdf');
+
+// Generate a report using a database connection
+Reporter::load('path/to/jasper/file.jasper')->withDataSource('pgsql')->save('document.pdf');
 ```
 
 ## TODO

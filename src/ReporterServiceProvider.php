@@ -25,15 +25,13 @@ class ReporterServiceProvider extends PackageServiceProvider
         $this->app->bind(Reporter::class, function () {
             $binaryPath = config('reporter.binary_path');
             $jdbcPath = config('reporter.jdbc_path');
-            $connection = config('reporter.connection') ?? config('database.default');
+            $connections = config('database.connections');
 
-            dd($connection);
-
-//            $jasperStarter = new JasperStarter(
-//                $binaryPath,
-//                $jdbcPath,
-//                $connection
-//            );
+            $jasperStarter = new JasperStarter(
+                $binaryPath,
+                $jdbcPath,
+                $connections
+            );
 
             return new Reporter($jasperStarter);
         });

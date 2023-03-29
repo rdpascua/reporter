@@ -27,9 +27,11 @@ class JasperStarter
         'xml' => 'application/xml',
     ];
 
-    protected array $data = [];
+    protected array $parameters = [];
 
-    public function __construct(protected string $binary, protected string $jdbcPath, protected array $connection = [])
+    protected array $connection = [];
+
+    public function __construct(protected ?string $binary = null, protected ?string $jdbcPath = null, protected array $connections = [])
     {
         if (! file_exists($binary)) {
             $this->binary = __DIR__.'/../bin/jasperstarter/bin/jasperstarter';
@@ -40,96 +42,132 @@ class JasperStarter
         }
     }
 
-    public function load(string $filePath, array $data = []): self
+    public function load(string $filePath, array $parameters = []): self
     {
         $this->file = $filePath;
-        $this->data = $data;
+        $this->parameters = $parameters;
 
         return $this;
     }
 
-   public function compile(string $output = null): self
-   {
-       $command = $this->createCommand('compile', [
-           'input' => $this->file,
-           'output' => $output,
-       ]);
+    public function connection(string $connection, array $options = []): self
+    {
+        if (! array_key_exists($connection, $this->connections)) {
+            throw new InvalidArgumentException("Invalid connection: {$connection}. Please provide a valid connection.");
+        }
 
-       $this->runCommand($command);
+        $this->connection = $this->connections[$connection];
 
-       return $this;
-   }
+        return $this;
+    }
 
-   public function getMime(string $fileExtension): string
-   {
-       return $this->mimes[$fileExtension];
-   }
+    public function compile(string $output = null): self
+    {
+        $command = $this->createCommand('compile', [
+            'input' => $this->file,
+            'output' => $output,
+        ]);
 
-   public function process(string $output, array $options = []): string
-   {
-       $fileExtension = pathinfo($output, PATHINFO_EXTENSION);
+        $this->runCommand($command);
 
-       if (! array_key_exists($fileExtension, $this->mimes)) {
-           throw new InvalidArgumentException("Invalid format: {$fileExtension}. Please provide a valid format.");
-       }
+        return $this;
+    }
 
-       $options = array_merge($options, [
-           'output' => str_replace(".{$fileExtension}", '', $output),
-           'format' => $fileExtension,
-       ]);
+    public function getMime(string $fileExtension): string
+    {
+        return $this->mimes[$fileExtension];
+    }
 
-       $command = $this->createCommand('process', $options);
-       $this->runCommand($command);
+    private function getDriver(): string
+    {
+        return match ($this->connection['driver']) {
+            'pgsql' => 'postgres',
+            'mysql' => 'mysql',
+            default => 'generic',
+        };
+    }
 
-       return $output;
-   }
+    public function process(string $output, array $options = []): string
+    {
+        $fileExtension = pathinfo($output, PATHINFO_EXTENSION);
 
-   private function createCommand(string $action, array $options): array
-   {
-       $command = [$this->binary, $action];
+        if (! array_key_exists($fileExtension, $this->mimes)) {
+            throw new InvalidArgumentException("Invalid format: {$fileExtension}. Please provide a valid format.");
+        }
 
-       switch ($action) {
-           case 'compile':
-               $command[] = $options['input'];
+        $options = array_merge($options, [
+            'output' => str_replace(".{$fileExtension}", '', $output),
+            'format' => $fileExtension,
+        ]);
 
-               if ($options['output']) {
-                   $output = str_replace('.jasper', '', $options['output']);
-                   $command = array_merge($command, ['-o', $output]);
-               }
-               break;
-           case 'process':
-               $command = array_merge($command, [
-                   $this->file,
-                   '-f',
-                   $options['format'],
-                   '-o',
-                   $options['output'],
-                   '--jdbc-dir',
-                   $this->jdbcPath,
-               ]);
+        $this->runCommand($this->createCommand('process', $options));
 
-               if (count($this->data)) {
-                   $command[] = '-P';
+        return $output;
+    }
 
-                   foreach ($this->data as $key => $value) {
-                       $command[] = "$key=$value";
-                   }
-               }
+    private function createCommand(string $action, array $options): array
+    {
+        $command = [$this->binary, $action];
 
-               break;
-       }
+        switch ($action) {
+            case 'compile':
+                $command[] = $options['input'];
 
-       return $command;
-   }
+                if ($options['output']) {
+                    $output = str_replace('.jasper', '', $options['output']);
+                    $command = array_merge($command, ['-o', $output]);
+                }
+                break;
+            case 'process':
+                $command = array_merge($command, [
+                    $this->file,
+                    '-f',
+                    $options['format'],
+                    '-o',
+                    $options['output'],
+                    '--jdbc-dir',
+                    $this->jdbcPath,
+                ]);
 
-   private function runCommand(array $command): void
-   {
-       $process = new Process($command);
+                if (count($this->parameters)) {
+                    $command[] = '-P';
 
-       try {
-           $process->mustRun();
-       } catch (ProcessFailedException $exception) {
-           throw new Exception($exception->getMessage());
-       }
-   }
+                    foreach ($this->parameters as $key => $value) {
+                        $command[] = "$key=$value";
+                    }
+                }
+
+                if (count($this->connection)) {
+                    $command = array_merge($command, [
+                        '-t',
+                        $this->getDriver(),
+                        '-u',
+                        $this->connection['username'],
+                        '-p',
+                        $this->connection['password'],
+                        '-H',
+                        $this->connection['host'],
+                        '-n',
+                        $this->connection['database'],
+                        '--db-port',
+                        $this->connection['port'],
+                    ]);
+                }
+
+                break;
+        }
+
+        return $command;
+    }
+
+    private function runCommand(array $command): void
+    {
+        $process = new Process($command);
+
+        try {
+            $process->mustRun();
+        } catch (ProcessFailedException $exception) {
+            throw new Exception($exception->getMessage());
+        }
+    }
 }
