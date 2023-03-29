@@ -1,17 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit
-    backupGlobals="false"
-    backupStaticAttributes="false"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+    bootstrap="vendor/autoload.php"
     colors="true"
-    stopOnFailure="false"
-    convertErrorsToExceptions="true"
-    convertNoticesToExceptions="true"
-    convertWarningsToExceptions="true"
-    processIsolation="false"
-    bootstrap="./vendor/autoload.php">
-    <testsuites name="Reporter Test Suite">
-        <testsuite>
-            <directory suffix=".php">tests</directory>
+    executionOrder="random"
+    failOnWarning="true"
+    failOnRisky="true"
+    failOnEmptyTestSuite="true"
+    beStrictAboutOutputDuringTests="true"
+    verbose="true"
+>
+    <testsuites>
+        <testsuite name="Reporter Test Suite">
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
+    <coverage>
+        <include>
+            <directory suffix=".php">./src</directory>
+        </include>
+        <report>
+            <html outputDirectory="build/coverage"/>
+            <text outputFile="build/coverage.txt"/>
+            <clover outputFile="build/logs/clover.xml"/>
+        </report>
+    </coverage>
+    <logging>
+        <junit outputFile="build/report.junit.xml"/>
+    </logging>
+    <php>
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_USERNAME" value="root"/>
+        <env name="DB_DATABASE" value="reporter"/>
+        <env name="DB_HOST" value="127.0.0.1" />
+        <env name="DB_PORT" value="3306" />
+    </php>
 </phpunit>
