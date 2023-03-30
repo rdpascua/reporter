@@ -24,9 +24,9 @@ class Reporter
         return $this;
     }
 
-    public function compile(): self
+    public function compile(string $output = null): self
     {
-        $this->jasperStarter->compile();
+        $this->jasperStarter->compile($output);
 
         return $this;
     }
