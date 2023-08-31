@@ -116,8 +116,8 @@ class JasperStarter
                 if ($options['output']) {
                     $output = str_replace('.jasper', '', $options['output']);
                     $command = array_merge($command, [
-                        '--jdbc-dir',
-                        $this->jdbcPath,
+                        // '--jdbc-dir',
+                        // $this->jdbcPath,
                         '-o',
                         $output
                     ]);
