@@ -31,7 +31,7 @@ class JasperStarter
 
     protected array $connection = [];
 
-    public function __construct(protected ?string $binary = null, protected ?string $jdbcPath = null, protected array $connections = [])
+    public function __construct(protected ?string $binary = null, protected ?string $jdbcPath = null, protected array $connections = [], protected ?string $resourcePath = null)
     {
         if (! file_exists($binary)) {
             $this->binary = __DIR__.'/../bin/jasperstarter/bin/jasperstarter';
@@ -115,7 +115,12 @@ class JasperStarter
 
                 if ($options['output']) {
                     $output = str_replace('.jasper', '', $options['output']);
-                    $command = array_merge($command, ['-o', $output]);
+                    $command = array_merge($command, [
+                        '--jdbc-dir',
+                        $this->jdbcPath,
+                        '-o',
+                        $output
+                    ]);
                 }
                 break;
             case 'process':
@@ -123,10 +128,11 @@ class JasperStarter
                     $this->file,
                     '-f',
                     $options['format'],
-                    '-o',
-                    $options['output'],
                     '--jdbc-dir',
                     $this->jdbcPath,
+                    '-o',
+                    $options['output'],
+                    '-r'
                 ]);
 
                 if (count($this->parameters)) {
